@@ -1,4 +1,4 @@
-# pod-netstat-exporter
+# pod-netstat-exporter [![GoDoc](https://godoc.org/github.com/wish/pod-netstat-exporter?status.svg)](https://godoc.org/github.com/wish/pod-netstat-exporter) [![Go Report Card](https://goreportcard.com/badge/github.com/wish/pod-netstat-exporter)](https://goreportcard.com/report/github.com/wish/pod-netstat-exporter)  [![Docker Repository on Quay](https://quay.io/repository/wish/pod-netstat-exporter/status "Docker Repository on Quay")](https://quay.io/repository/wish/pod-netstat-exporter)
 
 Get detailed, per-pod network metrics for export to prometheus. Right now it assumes that:
 
