@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pod-netstat-exporter
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-netstat-exporter
+  namespace: pod-netstat-exporter
+  labels:
+    app: pod-netstat-exporter

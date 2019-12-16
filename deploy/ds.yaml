@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: pod-netstat-exporter
+  name: pod-netstat-exporter
+  namespace: pod-netstat-exporter
+spec:
+  selector:
+    matchLabels:
+      app: pod-netstat-exporter
+  template:
+    metadata:
+      labels:
+        app: pod-netstat-exporter
+    spec:
+      serviceAccountName: pod-netstat-exporter
+      hostNetwork: true
+      hostPID: true
+      tolerations: 
+      - key: 'node-role.kubernetes.io/master'
+        effect: 'NoSchedule'
+      - key: 'CriticalAddonsOnly'
+        operator: 'Exists'
+      containers:
+      - name: pod-netstat-exporter
+        image: quay.io/wish/pod-netstat-exporter:latest
+        imagePullPolicy: Always
+        command: ['/root/pod-netstat-exporter']
+        env:
+        - name: 'KUBELET_API'
+          value: 'https://localhost:10250/pods'
+        - name: 'KUBELET_API_INSECURE_SKIP_VERIFY'
+          value: 'true'
+        - name: BIND_ADDRESS
+          value: ':9657'
+        - name: RATE_LIMIT
+          value: '3'
+        - name: HOST_MOUNT_PATH
+          value: '/host'
+        ports:
+        - name: 'metrics'
+          containerPort: 9657
+          protocol: 'TCP'
+        livenessProbe:
+          httpGet:
+            path: '/'
+            port: 9657
+        readinessProbe:
+          httpGet:
+            path: '/'
+            port: 9657
+        volumeMounts: 
+        - name: 'hproc'
+          mountPath: '/host/proc'
+        - name: 'hsys'
+          mountPath: '/host/sys'
+        - name: 'hvr'
+          mountPath: '/host/var/run'
+      volumes:
+      - name: 'hproc'
+        hostPath: 
+          path: '/proc'
+      - name: 'hsys'
+        hostPath: 
+          path: '/sys'
+      - name: 'hvr'
+        hostPath: 
+          path: '/var/run'
