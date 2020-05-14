@@ -1,8 +1,8 @@
-ARG BUILDPLATFORM=linux/amd64
-ARG TARGETARCH=amd64
-ARG TARGETOS=linux
-
 FROM --platform=$BUILDPLATFORM golang:1.14
+
+ARG BUILDPLATFORM
+ARG TARGETARCH
+ARG TARGETOS
 
 ENV GO111MODULE=on
 WORKDIR /go/src/github.com/wish/pod-netstat-exporter
