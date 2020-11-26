@@ -29,10 +29,10 @@ spec:
         imagePullPolicy: Always
         command: ['/root/pod-netstat-exporter']
         env:
-        - name: 'KUBELET_API'
-          value: 'https://localhost:10250/pods'
-        - name: 'KUBELET_API_INSECURE_SKIP_VERIFY'
-          value: 'true'
+        - name: 'NODE_NAME'
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         - name: BIND_ADDRESS
           value: ':9657'
         - name: RATE_LIMIT
