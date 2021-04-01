@@ -15,7 +15,7 @@ import (
 // NetStats is a mapping from stat name to value
 type NetStats map[string]int64
 
-// GetStats returns every netstat from /proc/net/(netstat|snmp|snmp6)
+// GetStats returns every netstat from /proc/net/(netstat|snmp|snmp6/sockstat/sockstat6)
 func GetStats(rootFs string, pid int) (NetStats, error) {
 	stats := NetStats{}
 	nStats, err := netstatsFromProc(rootFs, pid, "net/netstat")
@@ -39,6 +39,20 @@ func GetStats(rootFs string, pid int) (NetStats, error) {
 		return stats, err
 	}
 	for k, v := range s6Stats {
+		stats[k] = v
+	}
+	sockStats, err := sockstatsFromProc(rootFs, pid, "net/sockstat")
+	if err != nil {
+		return stats, err
+	}
+	for k, v := range sockStats {
+		stats[k] = v
+	}
+	sock6Stats, err := sockstatsFromProc(rootFs, pid, "net/sockstat6")
+	if err != nil {
+		return stats, err
+	}
+	for k, v := range sock6Stats {
 		stats[k] = v
 	}
 	return stats, nil
@@ -130,4 +144,39 @@ func parseSNMP6Stats(r io.Reader) (NetStats, error) {
 	}
 
 	return netStats, scanner.Err()
+}
+
+func sockstatsFromProc(rootFs string, pid int, file string) (NetStats, error) {
+	var err error
+	var stats NetStats
+
+	statsFile := path.Join(rootFs, "proc", strconv.Itoa(pid), file)
+
+	r, err := os.Open(statsFile)
+	if err != nil {
+		return stats, fmt.Errorf("failure opening %s: %v", statsFile, err)
+	}
+
+	return parseSockStats(r)
+}
+func parseSockStats(r io.Reader) (NetStats, error) {
+	var stats = NetStats{}
+	s := bufio.NewScanner(r)
+	for s.Scan() {
+		fields := strings.Split(s.Text(), " ")
+		metric := strings.TrimSuffix(fields[0], ":")
+		if len(fields) < 3 {
+			return nil, fmt.Errorf("Error: %s", s.Text())
+		}
+		for i := 1; i < len(fields); i++ {
+			value, err := strconv.Atoi(fields[i+1])
+			if err != nil {
+				continue
+			}
+			stats[metric+"_"+fields[i]] = int64(value)
+			i++
+		}
+
+	}
+	return stats, nil
 }
